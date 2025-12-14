@@ -1,78 +1,43 @@
-const tg = window.Telegram.WebApp;
-tg.expand();
+#!/bin/bash
 
-const products = [
-  { id: 1, name: "Хлеб", price: 30 },
-  { id: 2, name: "Молоко", price: 45 },
-  { id: 3, name: "Яблоки", price: 60 }
-];
+echo "--- Запуск пакетной установки приложений через APT ---"
 
-let cart = [];
+# Обновляем список пакетов
+sudo apt update
+if [ $? -ne 0 ]; then
+    echo "❌ Ошибка обновления APT. Проверьте подключение или права sudo."
+    exit 1
+fi
 
-const productsDiv = document.getElementById("products");
-const cartUl = document.getElementById("cart");
-const totalDiv = document.getElementById("total");
-const checkoutBtn = document.getElementById("checkout");
+required_packages=(
+    git               # Система контроля версий
+    python3           # Python
+    vlc               # Медиаплеер
+    curl              # Инструмент для передачи данных
+    build-essential   # Основные инструменты разработки (компиляторы)
+    snapd             # Если нужно установить приложения через Snap
+)
 
-/* Рендер товаров */
-products.forEach(p => {
-  const div = document.createElement("div");
-  div.className = "product";
-  div.innerHTML = `
-    <span>${p.name} — ${p.price} ₴</span>
-    <button onclick="addToCart(${p.id})">+</button>
-  `;
-  productsDiv.appendChild(div);
-});
+# Установка основных пакетов через apt
+echo "--- Установка основных APT-пакетов ---"
+sudo apt install -y "${required_packages[@]}"
 
-/* Добавить в корзину */
-function addToCart(id) {
-  const product = products.find(p => p.id === id);
-  cart.push(product);
-  renderCart();
-}
+# Установка приложений через Snap (если apt не имеет последних версий)
+echo "--- Установка приложений через SNAP ---"
+snap_apps=(
+    code              # VS Code
+    spotify           # Spotify
+    slack             # Slack
+)
 
-/* Удалить из корзины */
-function removeFromCart(index) {
-  cart.splice(index, 1);
-  renderCart();
-}
+for app in "${snap_apps[@]}"; do
+    echo "Установка SNAP-приложения: $app..."
+    sudo snap install "$app" --classic
+    if [ $? -eq 0 ]; then
+        echo "✅ Успешно установлено: $app"
+    else
+        echo "❌ Ошибка установки SNAP $app."
+    fi
+done
 
-/* Рендер корзины */
-function renderCart() {
-  cartUl.innerHTML = "";
-  let total = 0;
-
-  cart.forEach((item, index) => {
-    total += item.price;
-
-    const li = document.createElement("li");
-    li.className = "cart-item";
-    li.innerHTML = `
-      <span>${item.name} — ${item.price} ₴</span>
-      <button onclick="removeFromCart(${index})">❌</button>
-    `;
-    cartUl.appendChild(li);
-  });
-
-  totalDiv.innerText = `Сумма: ${total} ₴`;
-
-  // Обновляем MainButton Telegram
-  if (cart.length > 0) {
-    tg.MainButton.setText(`Оплатить ${total} ₴`);
-    tg.MainButton.show();
-  } else {
-    tg.MainButton.hide();
-  }
-}
-
-/* Отправка данных в бот */
-tg.MainButton.onClick(() => {
-  tg.sendData(JSON.stringify({
-    cart,
-    total: cart.reduce((s, i) => s + i.price, 0)
-  }));
-});
-
-/* Оформить заказ кнопкой */
-checkoutBtn.onclick = () => tg.MainButton.click();
+echo "--- Пакетная установка завершена ---"
