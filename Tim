@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Shop Mini App</title>
+
+  <!-- Telegram Mini App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>🛒 Магазин</h2>
+
+<div id="products"></div>
+
+<h3>Корзина</h3>
+<ul id="cart"></ul>
+
+<div id="total">Сумма: 0 ₴</div>
+
+<button id="checkout">Оформить заказ</button>
+
+<script src="app.js"></script>
+</body>
+</html>
